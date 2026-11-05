@@ -39,7 +39,7 @@ export const taskApi = {
    */
   async getTasks(params = {}) {
     try {
-      const response = await api.get('/', { params });
+      const response = await api.get('', { params });
       return response.data;
     } catch (error) {
       throw extractApiError(error);
@@ -75,7 +75,7 @@ export const taskApi = {
    */
   async createTask(taskData) {
     try {
-      const response = await api.post('/', taskData);
+      const response = await api.post('', taskData);
       return response.data;
     } catch (error) {
       throw extractApiError(error);
