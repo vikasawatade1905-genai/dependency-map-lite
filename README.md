@@ -121,19 +121,13 @@ npm run seed
 
 ## Deployment
 
-The frontend is deployed on Vercel and the backend API runs on Render. In the Vercel project settings, set `VITE_API_BASE_URL` to `https://dependencymap-api.onrender.com/api`. This is a public API URL, not a credential. The same value is shown in `client/.env.example`; for local development, the default `/api` path uses the Vite proxy.
+The frontend and serverless API are deployed together on Vercel. The API functions in `api/` connect to MongoDB Atlas through Mongoose. Configure `MONGO_URI` as an encrypted Vercel environment variable for Production, Preview, and Development. Never commit the URI or place it in a `VITE_` variable.
 
-The root `render.yaml` defines the backend-only Node service. Render installs dependencies from `server/`, starts the API, and checks `/api/health`.
+For local development, copy `server/.env.example` to `server/.env` and set `MONGO_URI`; the Vite dev server proxies `/api` to the local Express server. The local database fallback is development-only; production requires the configured MongoDB URI.
 
-For durable task data, add `MONGO_URI` as a secret environment variable in the Render service settings and point it to a reachable MongoDB deployment. Without it, the API uses its in-memory fallback, and task data is reset when the service restarts or sleeps.
+Live application: https://dependencymap-frontend.vercel.app
 
-Live frontend: https://dependencymap-frontend.vercel.app
-
-Live API: https://dependencymap-api.onrender.com
-
-Health check: https://dependencymap-api.onrender.com/api/health
-
-Deploy the Vercel frontend from the `client/` directory, with `VITE_API_BASE_URL` set for Production, Preview, and Development environments as needed.
+Health check: https://dependencymap-frontend.vercel.app/api/health
 
 ## REST API Specification
 

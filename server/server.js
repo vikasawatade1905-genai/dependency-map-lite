@@ -36,7 +36,7 @@ app.use('/api/tasks', taskRoutes);
 
 // Serve static frontend if client/dist exists (production build)
 const clientDistPath = path.join(__dirname, '../client/dist');
-if (fs.existsSync(clientDistPath)) {
+if (!process.env.VERCEL && fs.existsSync(clientDistPath)) {
   console.log(`[Server] Serving production client from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   app.get('*', (req, res, next) => {

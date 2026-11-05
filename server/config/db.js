@@ -2,42 +2,62 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 let mongoMemoryServerInstance = null;
+let connectionPromise = null;
 
 /**
- * Connect to MongoDB with graceful fallback to mongodb-memory-server
+ * Reuse the Mongoose connection across local and serverless invocations.
  */
 const connectDB = async () => {
-  const targetUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/dependencymap_lite';
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
 
-  try {
-    console.log(`[Database] Attempting connection to MongoDB at: ${targetUri}`);
-    // Attempt local or configured MongoDB instance with a 2-second timeout
-    await mongoose.connect(targetUri, {
-      serverSelectionTimeoutMS: 2000,
-      connectTimeoutMS: 2000,
-    });
-    console.log(`[Database] Successfully connected to persistent MongoDB at ${targetUri}`);
-  } catch (error) {
-    console.warn(`[Database] Connection to ${targetUri} failed (${error.message}).`);
-    console.log('[Database] Initializing in-memory fallback (mongodb-memory-server)...');
+  if (connectionPromise) {
+    return connectionPromise;
+  }
+
+  connectionPromise = (async () => {
+    const targetUri = process.env.MONGO_URI;
+
+    if (targetUri) {
+      try {
+        await mongoose.connect(targetUri, {
+          serverSelectionTimeoutMS: 10000,
+          connectTimeoutMS: 10000,
+          maxPoolSize: 5,
+        });
+        console.log('[Database] Connected to configured MongoDB.');
+        return mongoose.connection;
+      } catch (error) {
+        console.error(`[Database] Configured MongoDB connection failed: ${error.message}`);
+        throw error;
+      }
+    }
+
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      throw new Error('MONGO_URI is required in production.');
+    }
 
     try {
-      // Use x64 architecture binary with Windows emulation support
-      mongoMemoryServerInstance = await MongoMemoryServer.create({
-        binary: {
-          arch: 'x64',
-          version: '7.0.14',
-        },
+      await mongoose.connect('mongodb://127.0.0.1:27017/dependencymap_lite', {
+        serverSelectionTimeoutMS: 2000,
+        connectTimeoutMS: 2000,
       });
-      const inMemoryUri = mongoMemoryServerInstance.getUri();
-      
-      await mongoose.connect(inMemoryUri);
-      console.log(`[Database] In-memory MongoDB running and connected at ${inMemoryUri}`);
     } catch (fallbackError) {
-      console.error('[Database] Fatal: Failed to initialize in-memory MongoDB fallback:', fallbackError);
-      process.exit(1);
+      console.warn(`[Database] Local MongoDB unavailable (${fallbackError.message}); starting in-memory fallback.`);
+      mongoMemoryServerInstance = await MongoMemoryServer.create({
+        binary: { arch: 'x64', version: '7.0.14' },
+      });
+      await mongoose.connect(mongoMemoryServerInstance.getUri());
     }
-  }
+
+    return mongoose.connection;
+  })().catch((error) => {
+    connectionPromise = null;
+    throw error;
+  });
+
+  return connectionPromise;
 };
 
 /**
@@ -51,8 +71,10 @@ const disconnectDB = async () => {
     }
     if (mongoMemoryServerInstance) {
       await mongoMemoryServerInstance.stop();
+      mongoMemoryServerInstance = null;
       console.log('[Database] In-memory MongoDB stopped.');
     }
+    connectionPromise = null;
   } catch (err) {
     console.error('[Database] Error during disconnection:', err);
   }
