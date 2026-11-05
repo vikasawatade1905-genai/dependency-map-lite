@@ -1,0 +1,19 @@
+{
+  "name": "dependency-map-lite",
+  "version": "1.0.0",
+  "description": "Full-Stack Project Dependency Tracker with DAG Cycle Detection and State Machine Guardrails",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "start": "node server/server.js",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "seed": "node server/seed/seedData.js",
+    "test:engine": "node server/tests/verifyGraphEngine.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
