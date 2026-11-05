@@ -125,7 +125,9 @@ The root `render.yaml` defines a Node web service for the API. Render builds fro
 
 For durable task data, add `MONGO_URI` as a secret environment variable in the Render service settings and point it to a reachable MongoDB deployment. Without it, the API uses its in-memory fallback, and task data is reset when the service restarts or sleeps.
 
-After deployment, verify `https://<your-render-service>.onrender.com/api/health` returns a healthy status.
+Live API: https://dependencymap-api.onrender.com
+
+Health check: https://dependencymap-api.onrender.com/api/health
 
 ## REST API Specification
 
