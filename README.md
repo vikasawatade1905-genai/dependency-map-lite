@@ -119,15 +119,21 @@ npm run seed
 
 ---
 
-## Deploy the Backend to Render
+## Deployment
 
-The root `render.yaml` defines a Node web service for the full application. Render installs the server and client dependencies, builds the client, starts the API, and checks `/api/health`. The service root serves the dashboard, while `/api/*` routes are handled by the backend.
+The frontend is deployed on Vercel and the backend API runs on Render. In the Vercel project settings, set `VITE_API_BASE_URL` to `https://dependencymap-api.onrender.com/api`. This is a public API URL, not a credential. The same value is shown in `client/.env.example`; for local development, the default `/api` path uses the Vite proxy.
+
+The root `render.yaml` defines the backend-only Node service. Render installs dependencies from `server/`, starts the API, and checks `/api/health`.
 
 For durable task data, add `MONGO_URI` as a secret environment variable in the Render service settings and point it to a reachable MongoDB deployment. Without it, the API uses its in-memory fallback, and task data is reset when the service restarts or sleeps.
 
-Live dashboard and API: https://dependencymap-api.onrender.com
+Live frontend: https://dependencymap-frontend.vercel.app
+
+Live API: https://dependencymap-api.onrender.com
 
 Health check: https://dependencymap-api.onrender.com/api/health
+
+Deploy the Vercel frontend from the `client/` directory, with `VITE_API_BASE_URL` set for Production, Preview, and Development environments as needed.
 
 ## REST API Specification
 
