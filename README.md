@@ -121,11 +121,11 @@ npm run seed
 
 ## Deploy the Backend to Render
 
-The root `render.yaml` defines a Node web service for the API. Render builds from `server/`, starts with `npm start`, and checks `/api/health`. Push this repository to GitHub, then create a Render Blueprint from the repository or deploy the service with the Render CLI.
+The root `render.yaml` defines a Node web service for the full application. Render installs the server and client dependencies, builds the client, starts the API, and checks `/api/health`. The service root serves the dashboard, while `/api/*` routes are handled by the backend.
 
 For durable task data, add `MONGO_URI` as a secret environment variable in the Render service settings and point it to a reachable MongoDB deployment. Without it, the API uses its in-memory fallback, and task data is reset when the service restarts or sleeps.
 
-Live API: https://dependencymap-api.onrender.com
+Live dashboard and API: https://dependencymap-api.onrender.com
 
 Health check: https://dependencymap-api.onrender.com/api/health
 
